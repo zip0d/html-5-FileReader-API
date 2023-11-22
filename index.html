@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Локальное файловое хранилище</title>
+    <style>
+        body {
+            background-color: #981d3c;
+            color: #fff;
+        }
+
+        #drop-area {
+            width: 300px;
+            height: 200px;
+            border: 2px dashed #ccc;
+            text-align: center;
+            line-height: 200px;
+            margin: 20px;
+        }
+
+        #drop-area.highlight {
+            border-color: #2196f3;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="drop-area" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);" ondragleave="dragLeaveHandler(event);">
+        Перетащите файлы сюда
+    </div>
+
+    <input type="file" id="file-input" multiple>
+
+    <div id="file-list"></div>
+
+    <form id="filter-form">
+        <label for="file-type">Тип файла:</label>
+        <input type="text" id="file-type" name="file-type">
+
+        <label for="file-size">Размер файла (в байтах):</label>
+        <input type="text" id="file-size" name="file-size">
+
+        <label for="sort-type">Сортировка:</label>
+        <select id="sort-type" name="sort-type">
+            <option value="all">Все</option>
+            <option value="png">PNG</option>
+        </select>
+
+        <button type="button" onclick="filterFiles()">Применить фильтр</button>
+    </form>
+
+    <script>
+        function dragOverHandler(event) {
+            event.preventDefault();
+            const dropArea = document.getElementById('drop-area');
+            dropArea.classList.add('highlight');
+        }
+
+        function dragLeaveHandler(event) {
+            const dropArea = document.getElementById('drop-area');
+            dropArea.classList.remove('highlight');
+        }
+
+        function dropHandler(event) {
+            event.preventDefault();
+            const dropArea = document.getElementById('drop-area');
+            dropArea.classList.remove('highlight');
+            const files = event.dataTransfer.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            const fileList = document.getElementById('file-list');
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const listItem = document.createElement('p');
+                const metadata = {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size
+                };
+                listItem.textContent = `Имя файла: ${metadata.name}, Тип файла: ${metadata.type}, Размер файла: ${metadata.size} байт`;
+                fileList.appendChild(listItem);
+                saveToLocalStorage(metadata);
+            }
+        }
+
+        function saveToLocalStorage(metadata) {
+            const key = metadata.name;
+            const value = JSON.stringify(metadata);
+            localStorage.setItem(key, value);
+        }
+
+        function filterFiles() {
+            const fileTypeInput = document.getElementById('file-type').value;
+            const fileSizeInput = parseInt(document.getElementById('file-size').value);
+            const sortTypeInput = document.getElementById('sort-type').value;
+
+            const fileList = document.getElementById('file-list');
+            const items = fileList.getElementsByTagName('p');
+
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const metadata = JSON.parse(item.textContent.replace(/\s/g, '').substring(1, item.textContent.length - 1));
+
+                const typeMatch = metadata.type.includes(fileTypeInput);
+                const sizeMatch = metadata.size <= fileSizeInput;
+
+                if (sortTypeInput === 'all') {
+                    item.style.display = typeMatch && sizeMatch ? 'block' : 'none';
+                } else if (sortTypeInput === 'png') {
+                    const isPng = metadata.type === 'image/png';
+                    item.style.display = isPng && sizeMatch ? 'block' : 'none';
+                }
+            }
+        }
+
+        document.getElementById('file-input').addEventListener('change', (event) => {
+            const files = event.target.files;
+            handleFiles(files);
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                const metadata = JSON.parse(value);
+                const listItem = document.createElement('p');
+                listItem.textContent = `Имя файла: ${metadata.name}, Размер файла: ${metadata.size} байт`;
+                document.getElementById('file-list').appendChild(listItem);
+            }
+        });
+    </script>
+</body>
+
+</html>
