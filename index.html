@@ -83,14 +83,14 @@
                 };
                 listItem.textContent = `Имя файла: ${metadata.name}, Тип файла: ${metadata.type}, Размер файла: ${metadata.size} байт`;
                 fileList.appendChild(listItem);
-                saveToLocalStorage(metadata);
+                saveToSessionStorage(metadata);
             }
         }
 
-        function saveToLocalStorage(metadata) {
+        function saveToSessionStorage(metadata) {
             const key = metadata.name;
             const value = JSON.stringify(metadata);
-            localStorage.setItem(key, value);
+            sessionStorage.setItem(key, value);
         }
 
         function filterFiles() {
@@ -123,9 +123,9 @@
         });
 
         document.addEventListener('DOMContentLoaded', function () {
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                const value = localStorage.getItem(key);
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                const value = sessionStorage.getItem(key);
                 const metadata = JSON.parse(value);
                 const listItem = document.createElement('p');
                 listItem.textContent = `Имя файла: ${metadata.name}, Размер файла: ${metadata.size} байт`;
